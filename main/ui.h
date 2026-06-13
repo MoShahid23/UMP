@@ -1,6 +1,6 @@
 /**
  * @file ui.h
- * @brief LVGL screens and navigation (home / menu).
+ * @brief LVGL screens: home, menu list, and setting/detail pages.
  */
 
 #pragma once

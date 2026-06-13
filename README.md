@@ -21,7 +21,7 @@ UI uses LVGL via `esp_lvgl_port`. Boot shows **Home**; **Menu** toggles home/men
 - [x] ST7365 test pattern
 - [x] LVGL on display
 - [x] Input (buttons + encoder)
-- [ ] Home / menu / songs screens (home + menu shell done)
+- [ ] Home / menu / songs screens (menu list + debug detail pages done)
 - [ ] Play one audio file
 - [ ] Songs list from storage
 - [ ] Home / settings content
