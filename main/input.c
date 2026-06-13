@@ -19,7 +19,7 @@ static const char *TAG = "input";
 #define INPUT_POLL_MS        10
 #define INPUT_DEBOUNCE_MS    40
 /** Valid CLK/DT transitions per one encoder detent (EC11 ≈ 4). */
-#define ENC_STEPS_PER_DETENT 4
+#define ENC_STEPS_PER_DETENT 2
 
 typedef struct {
     gpio_num_t gpio;

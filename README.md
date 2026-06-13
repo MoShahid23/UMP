@@ -14,13 +14,14 @@ ESP32-S3 firmware for the UMP device.
 | DC     | 11   |
 | RST    | 46   |
 
-UI uses [esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port) on top of the same `esp_lcd` panel driver. On boot, LVGL shows a simple **UMP** label (step 1 of the UI bring-up).
+UI uses LVGL via `esp_lvgl_port`. Boot shows **Home**; **Menu** toggles home/menu; **Back** returns home.
 
 ## Roadmap (stage 1)
 
 - [x] ST7365 test pattern
-- [x] LVGL on display (hello label)
-- [ ] Input + 3-screen shell (home / songs / settings)
+- [x] LVGL on display
+- [x] Input (buttons + encoder)
+- [ ] Home / menu / songs screens (home + menu shell done)
 - [ ] Play one audio file
 - [ ] Songs list from storage
 - [ ] Home / settings content
