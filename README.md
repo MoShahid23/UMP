@@ -2,17 +2,17 @@
 
 ESP32-S3 firmware for the UMP device.
 
-## Display
+## SPI (shared: LCD + SD)
 
-320×480 ST7365 panel over SPI:
-
-| Signal | GPIO |
-|--------|------|
-| MOSI   | 13   |
-| SCLK   | 10   |
-| CS     | 9    |
-| DC     | 11   |
-| RST    | 46   |
+| Signal | GPIO | Device |
+|--------|------|--------|
+| MOSI   | 13   | bus    |
+| MISO   | 8    | bus    |
+| SCLK   | 10   | bus    |
+| CS     | 9    | LCD    |
+| DC     | 11   | LCD    |
+| RST    | 46   | LCD    |
+| CS     | 18   | SD     |
 
 UI uses LVGL via `esp_lvgl_port`. Boot shows **Home**; **Menu** toggles home/menu; **Back** returns home.
 

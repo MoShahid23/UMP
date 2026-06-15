@@ -2,17 +2,24 @@
 
 #include "driver/gpio.h"
 
-#define LCD_PIN_MOSI  GPIO_NUM_13
-#define LCD_PIN_SCLK  GPIO_NUM_10
-#define LCD_PIN_CS    GPIO_NUM_9
-#define LCD_PIN_DC    GPIO_NUM_11
-#define LCD_PIN_RST   GPIO_NUM_46
+/* Shared SPI2 bus (LCD + SD card) */
+#define SPI_HOST        SPI2_HOST
+#define SPI_LCD_HZ      (40 * 1000 * 1000)
+
+#define SPI_PIN_MISO    GPIO_NUM_8
+#define SPI_PIN_MOSI    GPIO_NUM_13
+#define SPI_PIN_SCLK    GPIO_NUM_10
+
+/* LCD-only (not shared with SD) */
+#define LCD_PIN_CS      GPIO_NUM_9
+#define LCD_PIN_DC      GPIO_NUM_11
+#define LCD_PIN_RST     GPIO_NUM_46
+
+/* SD card (SPI mode — shares MOSI/SCLK/MISO, separate CS) */
+#define SD_PIN_CS       GPIO_NUM_18
 
 #define LCD_WIDTH  320
 #define LCD_HEIGHT 480
-
-#define LCD_SPI_HOST  SPI2_HOST
-#define LCD_SPI_HZ    (40 * 1000 * 1000)
 
 /* Tact buttons: GPIO ── switch ── GND, internal pull-up */
 #define BT_MENU_GPIO    GPIO_NUM_15

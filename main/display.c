@@ -40,27 +40,27 @@ static esp_lcd_panel_handle_t s_panel;
 static esp_err_t display_init_panel(void)
 {
     spi_bus_config_t buscfg = {
-        .sclk_io_num = LCD_PIN_SCLK,
-        .mosi_io_num = LCD_PIN_MOSI,
-        .miso_io_num = GPIO_NUM_NC,
+        .sclk_io_num = SPI_PIN_SCLK,
+        .mosi_io_num = SPI_PIN_MOSI,
+        .miso_io_num = SPI_PIN_MISO,
         .quadwp_io_num = GPIO_NUM_NC,
         .quadhd_io_num = GPIO_NUM_NC,
         /* Largest single transfer we may queue (full-screen RGB565 bitmap). */
         .max_transfer_sz = LCD_WIDTH * LCD_HEIGHT * sizeof(uint16_t),
     };
-    ESP_RETURN_ON_ERROR(spi_bus_initialize(LCD_SPI_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(SPI_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
 
     esp_lcd_panel_io_spi_config_t io_config = {
         .dc_gpio_num = LCD_PIN_DC,
         .cs_gpio_num = LCD_PIN_CS,
-        .pclk_hz = LCD_SPI_HZ,
+        .pclk_hz = SPI_LCD_HZ,
         .spi_mode = 0,
         .trans_queue_depth = 10,
         .lcd_cmd_bits = 8,
         .lcd_param_bits = 8,
     };
     ESP_RETURN_ON_ERROR(
-        esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_SPI_HOST, &io_config, &s_io),
+        esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)SPI_HOST, &io_config, &s_io),
         TAG, "panel IO init failed");
 
     esp_lcd_panel_dev_config_t panel_config = {
