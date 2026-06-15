@@ -33,23 +33,12 @@ static esp_lcd_panel_io_handle_t s_io;
 static esp_lcd_panel_handle_t s_panel;
 
 /**
- * @brief Initialize SPI and the ST7365 panel (no LVGL).
+ * @brief Initialize the ST7365 panel (no LVGL).
  *
- * Same sequence as before LVGL: bus → panel I/O → chip driver → reset → init.
+ * SPI bus must already be initialized (spi_bus_init in storage.c).
  */
 static esp_err_t display_init_panel(void)
 {
-    spi_bus_config_t buscfg = {
-        .sclk_io_num = SPI_PIN_SCLK,
-        .mosi_io_num = SPI_PIN_MOSI,
-        .miso_io_num = SPI_PIN_MISO,
-        .quadwp_io_num = GPIO_NUM_NC,
-        .quadhd_io_num = GPIO_NUM_NC,
-        /* Largest single transfer we may queue (full-screen RGB565 bitmap). */
-        .max_transfer_sz = LCD_WIDTH * LCD_HEIGHT * sizeof(uint16_t),
-    };
-    ESP_RETURN_ON_ERROR(spi_bus_initialize(SPI_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
-
     esp_lcd_panel_io_spi_config_t io_config = {
         .dc_gpio_num = LCD_PIN_DC,
         .cs_gpio_num = LCD_PIN_CS,

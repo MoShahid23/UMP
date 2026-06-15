@@ -9,6 +9,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "storage.h"
 
 static const char *TAG = "ump";
 
@@ -16,8 +17,17 @@ void app_main(void)
 {
     ESP_LOGI(TAG, "UMP starting");
 
+    ESP_ERROR_CHECK(spi_bus_init());
+
+    esp_err_t storage_err = storage_mount();
+    if (storage_err != ESP_OK) {
+        ESP_LOGW(TAG, "SD card unavailable (%s), continuing without storage",
+                 esp_err_to_name(storage_err));
+    }
+
     lv_display_t *disp = NULL;
     ESP_ERROR_CHECK(display_init(&disp));
+
     ESP_ERROR_CHECK(ui_init(disp));
     ESP_ERROR_CHECK(input_init(ui_on_nav));
 

@@ -79,3 +79,4 @@ Desktop.ini
 .clangd
 Prompts.txt
 .vscode/
+.vscode/settings.json
