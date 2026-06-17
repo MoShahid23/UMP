@@ -15,8 +15,11 @@
 #include "esp_vfs_fat.h"
 #include "ff.h"
 #include "sdmmc_cmd.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 static const char *TAG = "storage";
+static bool s_mounted;
 
 esp_err_t spi_bus_init(void)
 {
@@ -32,8 +35,14 @@ esp_err_t spi_bus_init(void)
     return spi_bus_initialize(SPI_HOST, &buscfg, SPI_DMA_CH_AUTO);
 }
 
+bool storage_is_ready(void)
+{
+    return s_mounted;
+}
+
 esp_err_t storage_mount(void)
 {
+    s_mounted = false;
     sdspi_dev_handle_t sd_handle;
 
     sdspi_device_config_t storage_config = SDSPI_DEVICE_CONFIG_DEFAULT();
@@ -67,7 +76,7 @@ esp_err_t storage_mount(void)
 
     char drv[3] = { (char)('0' + pdrv), ':', 0 };
     FATFS *fs;
-    ESP_RETURN_ON_ERROR(esp_vfs_fat_register("/sdcard", drv, 5, &fs), TAG, "FATFS VFS register failed");
+    ESP_RETURN_ON_ERROR(esp_vfs_fat_register(STORAGE_MOUNT_PATH, drv, 5, &fs), TAG, "FATFS VFS register failed");
 
     FRESULT res = f_mount(fs, drv, 1);
     if (res != FR_OK) {
@@ -75,6 +84,7 @@ esp_err_t storage_mount(void)
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "SD card mounted at /sdcard");
+    s_mounted = true;
+    ESP_LOGI(TAG, "SD card mounted at %s", STORAGE_MOUNT_PATH);
     return ESP_OK;
 }

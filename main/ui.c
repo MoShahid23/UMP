@@ -8,6 +8,7 @@
 #include "board.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
+#include "files.h"
 
 #include <stddef.h>
 
@@ -56,6 +57,10 @@ static void show_screen_id(ui_screen_id_t id)
     lv_screen_load(s_screens[id]);
     s_current = id;
     ESP_LOGI(TAG, "screen: %s", screen_name(id));
+
+    if (id == UI_SCR_FILES) {
+        files_on_show();
+    }
 }
 
 /** Reusable detail screen: title + body (for TBD debug pages). */
@@ -167,7 +172,7 @@ esp_err_t ui_init(lv_display_t *disp)
 
     s_screens[UI_SCR_HOME] = create_setting_screen("Home", "Now playing: (none)");
     s_screens[UI_SCR_MENU] = create_menu_screen();
-    s_screens[UI_SCR_FILES] = create_setting_screen("Files", "TBD\n\nSD mount and file list.");
+    s_screens[UI_SCR_FILES] = files_screen_create();
     s_screens[UI_SCR_PLAYBACK] = create_setting_screen("Playback", "TBD\n\nAudio pipeline test.");
     s_screens[UI_SCR_BRIGHTNESS] = create_setting_screen("Brightness", "TBD\n\nBacklight PWM test.");
 
@@ -208,18 +213,24 @@ void ui_on_nav(nav_event_t event)
     case NAV_EVT_LEFT:
         if (s_current == UI_SCR_MENU) {
             menu_move_selection(-1);
+        } else if (s_current == UI_SCR_FILES) {
+            files_on_nav(event);
         }
         break;
 
     case NAV_EVT_RIGHT:
         if (s_current == UI_SCR_MENU) {
             menu_move_selection(1);
+        } else if (s_current == UI_SCR_FILES) {
+            files_on_nav(event);
         }
         break;
 
     case NAV_EVT_SELECT:
         if (s_current == UI_SCR_MENU) {
             show_screen_id(s_menu_items[s_menu_sel].target);
+        } else if (s_current == UI_SCR_FILES) {
+            files_on_nav(event);
         }
         break;
 
