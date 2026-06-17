@@ -4,7 +4,7 @@
  *
  * Split into display_init_panel() (hardware only) and display_init() (+ LVGL).
  * LVGL draws into partial buffers in PSRAM; esp_lvgl_port flushes dirty regions
- * to the panel using the same esp_lcd_panel_handle_t as the old test pattern.
+ * to the panel via esp_lcd_panel_draw_bitmap().
  */
 
 #include "driver/spi_master.h"
@@ -15,6 +15,7 @@
 #include "esp_lcd_panel_st7365.h"
 #include "esp_check.h"
 #include "esp_log.h"
+#include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
 
 static const char *TAG = "display";
@@ -54,8 +55,8 @@ static esp_err_t display_init_panel(void)
 
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = LCD_PIN_RST,
-        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
-        .data_endian = LCD_RGB_DATA_ENDIAN_LITTLE,
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+        .data_endian = LCD_RGB_DATA_ENDIAN_BIG,
         .bits_per_pixel = 16,
         .flags = {
             .reset_active_high = false,
@@ -64,6 +65,7 @@ static esp_err_t display_init_panel(void)
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_st7365(s_io, &panel_config, &s_panel), TAG, "ST7365 init failed");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_reset(s_panel), TAG, "panel reset failed");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_init(s_panel), TAG, "panel init failed");
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_invert_color(s_panel, true), TAG, "panel inversion failed");
 
     return ESP_OK;
 }
@@ -83,7 +85,7 @@ esp_err_t display_init(lv_display_t **out_disp)
 
     /*
      * Register our esp_lcd panel with LVGL. The port installs flush callbacks that
-     * call esp_lcd_panel_draw_bitmap() (same path as the old line-by-line test pattern).
+     * call esp_lcd_panel_draw_bitmap() on each dirty LVGL region.
      */
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = s_io,
@@ -106,7 +108,7 @@ esp_err_t display_init(lv_display_t **out_disp)
             /*
              * buff_spiram: draw buffers in PSRAM (8 MB on N16R8). Keeps internal SRAM free.
              * buff_dma: false — DMA-capable buffers must be in internal RAM; we use PSRAM.
-             * swap_bytes: LVGL RGB565 byte order vs what ST7365 SPI expects. Toggle if colors wrong.
+             * swap_bytes: LVGL RGB565 byte order vs what ST7365 SPI expects.
              */
             .buff_dma = false,
             .buff_spiram = true,

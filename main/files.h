@@ -16,3 +16,6 @@ void files_on_show(void);
 
 /** Handle encoder/button events while Files is active. */
 void files_on_nav(nav_event_t event);
+
+/** Currently highlighted file name, or NULL. */
+const char *files_selected_name(void);

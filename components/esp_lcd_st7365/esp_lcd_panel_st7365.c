@@ -109,7 +109,7 @@ esp_lcd_new_panel_st7365(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel
     }
 
     st7365->ramctl_val_1 = 0x00;
-    st7365->ramctl_val_2 = 0xf0;    // Use big endian by default
+    st7365->ramctl_val_2 = 0xc0;    // Standard RGB565 RAM data expansion/control.
     if ((panel_dev_config->data_endian) == LCD_RGB_DATA_ENDIAN_LITTLE) {
         // Use little endian
         st7365->ramctl_val_2 |= st7365_DATA_LITTLE_ENDIAN_BIT;

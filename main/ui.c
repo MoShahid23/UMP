@@ -1,14 +1,14 @@
 /**
  * @file ui.c
- * @brief Home, menu list, and setting/detail screens.
+ * @brief UI shell: screen registry and navigation routing.
  */
 
 #include "ui.h"
 
-#include "board.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
 #include "files.h"
+#include "ui_kit.h"
 
 #include <stddef.h>
 
@@ -63,89 +63,27 @@ static void show_screen_id(ui_screen_id_t id)
     }
 }
 
-/** Reusable detail screen: title + body (for TBD debug pages). */
-static lv_obj_t *create_setting_screen(const char *title, const char *body)
-{
-    lv_obj_t *scr = lv_obj_create(NULL);
-    lv_obj_set_style_bg_color(scr, lv_color_black(), 0);
-    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
-
-    lv_obj_t *heading = lv_label_create(scr);
-    lv_label_set_text(heading, title);
-    lv_obj_set_style_text_color(heading, lv_color_white(), 0);
-    lv_obj_align(heading, LV_ALIGN_TOP_MID, 0, 24);
-
-    lv_obj_t *label = lv_label_create(scr);
-    lv_label_set_text(label, body);
-    lv_obj_set_style_text_color(label, lv_color_white(), 0);
-    lv_obj_set_width(label, LCD_WIDTH - 40);
-    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-
-    lv_obj_t *hint = lv_label_create(scr);
-    lv_label_set_text(hint, "Back: menu");
-    lv_obj_set_style_text_color(hint, lv_color_hex(0x888888), 0);
-    lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -16);
-
-    return scr;
-}
-
 static void menu_highlight_update(void)
 {
     const int count = sizeof(s_menu_items) / sizeof(s_menu_items[0]);
 
     for (int i = 0; i < count; i++) {
-        lv_obj_t *row = s_menu_rows[i];
-        if (i == s_menu_sel) {
-            lv_obj_set_style_bg_color(row, lv_color_hex(0x404040), 0);
-            lv_obj_set_style_border_color(row, lv_color_white(), 0);
-            lv_obj_set_style_border_width(row, 1, 0);
-        } else {
-            lv_obj_set_style_bg_color(row, lv_color_hex(0x181818), 0);
-            lv_obj_set_style_border_width(row, 0, 0);
-        }
+        ui_list_row_set_selected(s_menu_rows[i], i == s_menu_sel);
     }
 }
 
 static lv_obj_t *create_menu_screen(void)
 {
-    lv_obj_t *scr = lv_obj_create(NULL);
-    lv_obj_set_style_bg_color(scr, lv_color_black(), 0);
-    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
-
-    lv_obj_t *heading = lv_label_create(scr);
-    lv_label_set_text(heading, "Menu");
-    lv_obj_set_style_text_color(heading, lv_color_white(), 0);
-    lv_obj_align(heading, LV_ALIGN_TOP_MID, 0, 24);
-
-    lv_obj_t *list = lv_obj_create(scr);
-    lv_obj_set_size(list, LCD_WIDTH - 32, LCD_HEIGHT - 100);
-    lv_obj_align(list, LV_ALIGN_BOTTOM_MID, 0, -12);
-    lv_obj_set_style_bg_opa(list, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_border_width(list, 0, 0);
-    lv_obj_set_style_pad_row(list, 8, 0);
-    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-
+    ui_menu_page_t menu = ui_menu_page_create("Menu");
     const int count = sizeof(s_menu_items) / sizeof(s_menu_items[0]);
+
     for (int i = 0; i < count; i++) {
-        lv_obj_t *row = lv_obj_create(list);
-        lv_obj_set_width(row, lv_pct(100));
-        lv_obj_set_height(row, 48);
-        lv_obj_set_style_pad_all(row, 12, 0);
-        lv_obj_set_style_radius(row, 4, 0);
-
-        lv_obj_t *label = lv_label_create(row);
-        lv_label_set_text(label, s_menu_items[i].label);
-        lv_obj_set_style_text_color(label, lv_color_white(), 0);
-        lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
-
-        s_menu_rows[i] = row;
+        s_menu_rows[i] = ui_list_row_create(menu.list, s_menu_items[i].label);
     }
 
     s_menu_sel = 0;
     menu_highlight_update();
-    return scr;
+    return menu.screen;
 }
 
 static void menu_move_selection(int delta)
@@ -163,18 +101,18 @@ static void menu_move_selection(int delta)
 
 esp_err_t ui_init(lv_display_t *disp)
 {
-    (void)disp;
-
     if (!lvgl_port_lock(0)) {
         ESP_LOGE(TAG, "LVGL lock failed in ui_init");
         return ESP_FAIL;
     }
 
-    s_screens[UI_SCR_HOME] = create_setting_screen("Home", "Now playing: (none)");
+    ui_kit_init(disp);
+
+    s_screens[UI_SCR_HOME] = ui_static_page_create("Home", "Now playing: (none)", NULL);
     s_screens[UI_SCR_MENU] = create_menu_screen();
     s_screens[UI_SCR_FILES] = files_screen_create();
-    s_screens[UI_SCR_PLAYBACK] = create_setting_screen("Playback", "TBD\n\nAudio pipeline test.");
-    s_screens[UI_SCR_BRIGHTNESS] = create_setting_screen("Brightness", "TBD\n\nBacklight PWM test.");
+    s_screens[UI_SCR_PLAYBACK] = ui_static_page_create("Playback", "TBD\n\nAudio pipeline test.", "Back: menu");
+    s_screens[UI_SCR_BRIGHTNESS] = ui_static_page_create("Brightness", "TBD\n\nBacklight PWM test.", "Back: menu");
 
     show_screen_id(UI_SCR_HOME);
 
