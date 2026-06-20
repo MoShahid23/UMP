@@ -21,6 +21,11 @@
 #define LCD_WIDTH  320
 #define LCD_HEIGHT 480
 
+/* DAC */
+#define DAC_DIN GPIO_NUM_37
+#define DAC_BCLK GPIO_NUM_36
+#define DAC_LRC GPIO_NUM_35
+
 /* Tact buttons: GPIO ── switch ── GND, internal pull-up */
 #define BT_MENU_GPIO    GPIO_NUM_15
 #define BT_BACK_GPIO    GPIO_NUM_4
